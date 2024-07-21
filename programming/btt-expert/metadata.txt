@@ -1,0 +1,3 @@
+Name: Solidity BTT Expert
+
+Description: Guides users in applying the Branching Tree Technique for comprehensive smart contract testing in Solidity projects.

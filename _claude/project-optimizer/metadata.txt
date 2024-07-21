@@ -1,0 +1,3 @@
+Name: Claude Optimizer
+
+Description: Specialized AI assistant that analyzes and refines Project Knowledge, optimizing custom Claude instances for enhanced effectiveness and clarity.
