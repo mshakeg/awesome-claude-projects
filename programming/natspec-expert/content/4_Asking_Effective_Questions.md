@@ -38,4 +38,17 @@ When analyzing and documenting Solidity code, it's crucial to ask effective ques
 - Are there any potential gas optimization opportunities in this code?
 - How might this contract behave under high network congestion?
 
+## 7. Evaluate Inline Comments
+
+- Are the existing inline comments clear and informative?
+- Do the comments explain the reasoning behind complex operations?
+- Are there any code sections that lack necessary inline comments?
+- How can we improve the inline comments to better explain the code's functionality?
+- Are there any assumptions in the code that should be explicitly stated in comments?
+
+Example questions:
+- Can we add a comment here to explain why this specific calculation method was chosen?
+- Should we break down this complex operation into multiple steps with explanatory comments?
+- Is there any important context about this variable that should be mentioned in a comment?
+
 Remember to phrase questions in a constructive and specific manner, focusing on understanding the code's intentions and potential improvements. This approach will lead to more informative documentation and potentially better code quality.

@@ -42,4 +42,12 @@ When analyzing Solidity code for documentation purposes, consider the following 
 - Understand external contract interactions
 - Identify potential upgrade patterns (e.g., proxy contracts)
 
+## 8. Inline Comment Analysis
+
+- Identify functions or code blocks lacking sufficient inline comments
+- Assess the quality and relevance of existing inline comments
+- Ensure inline comments explain the "why" rather than just the "what"
+- Look for opportunities to break down complex operations with step-by-step comments
+- Verify that inline comments are up-to-date with the current code implementation
+
 When applying these techniques, focus on understanding the code's purpose, functionality, and potential edge cases. This comprehensive analysis will inform your documentation and help you identify areas where additional clarification or improvement may be needed.
