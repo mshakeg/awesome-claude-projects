@@ -18,90 +18,36 @@ functionName.t.sol
 
 ## Complex Example
 
-In real-world applications, .tree files can be much more complex. Here's an example based on a withdraw function taken from the sablier v2-core codebase:
+In real-world applications, .tree files can be much more complex. Here's an example based on a `createWithDurations` external function for the `SablierV2LockupDynamic` contract taken from the sablier v2-core codebase:
 
 ```
-withdraw.t.sol
+createWithDurations.t.sol
 ├── when delegate called
-│   └── it should revert
+│  └── it should revert
 └── when not delegate called
-    ├── given the ID references a null stream
-    │   └── it should revert
-    └── given the ID does not reference a null stream
-        ├── given the stream's status is "DEPLETED"
-        │   └── it should revert
-        └── given the stream's status is not "DEPLETED"
-            ├── when the provided address is zero
-            │   └── it should revert
-            └── when the provided address is not zero
-                ├── when the withdraw amount is zero
-                │   └── it should revert
-                └── when the withdraw amount is not zero
-                    ├── when the withdraw amount overdraws
-                    │   └── it should revert
-                    └── when the withdraw amount does not overdraw
-                        ├── when the withdrawal address is not the stream recipient
-                        │   ├── when the caller is unknown
-                        │   │   └── it should revert
-                        │   ├── when the caller is the sender
-                        │   │   └── it should revert
-                        │   ├── when the caller is a former recipient
-                        │   │   └── it should revert
-                        │   ├── when the caller is an approved third party
-                        │   │   ├── it should make the withdrawal
-                        │   │   └── it should update the withdrawn amount
-                        │   └── when the caller is the recipient
-                        │       ├── it should make the withdrawal
-                        │       ├── it should update the withdrawn amount
-                        │       ├── it should emit a {MetadataUpdate} event
-                        │       └── it should emit a {WithdrawFromLockupStream} event
-                        └── when the withdrawal address is the stream recipient
-                            ├── when the caller is unknown
-                            │   ├── it should make the withdrawal
-                            │   └── it should update the withdrawn amount
-                            ├── when the caller is the recipient
-                            │   ├── it should make the withdrawal
-                            │   └── it should update the withdrawn amount
-                            └── when the caller is the sender
-                                ├── given the end time is not in the future
-                                │   ├── it should make the withdrawal
-                                │   ├── it should mark the stream as depleted
-                                │   └── it should make the stream not cancelable
-                                └── given the end time is in the future
-                                    ├── given the stream has been canceled
-                                    │   ├── it should make the withdrawal
-                                    │   ├── it should mark the stream as depleted
-                                    │   ├── it should update the withdrawn amount
-                                    │   ├── it should make Sablier run the recipient hook
-                                    │   ├── it should emit a {MetadataUpdate} event
-                                    │   └── it should emit a {WithdrawFromLockupStream} event
-                                    └── given the stream has not been canceled
-                                        ├── given the recipient is not allowed to hook
-                                        │   ├── it should make the withdrawal
-                                        │   ├── it should update the withdrawn amount
-                                        │   └── it should not make Sablier run the recipient hook
-                                        └── given the recipient is allowed to hook
-                                            ├── when the recipient reverts
-                                            │   └── it should revert the entire transaction
-                                            └── when the recipient does not revert
-                                                ├── when the recipient hook does not return a valid selector
-                                                │   └── it should revert
-                                                └── when the recipient hook returns a valid selector
-                                                    ├── when there is reentrancy
-                                                    │   ├── it should make multiple withdrawals
-                                                    │   ├── it should update the withdrawn amounts
-                                                    │   └── it should make Sablier run the recipient hook
-                                                    └── when there is no reentrancy
-                                                        ├── it should make the withdrawal
-                                                        ├── it should update the withdrawn amount
-                                                        ├── it should make Sablier run the recipient hook
-                                                        ├── it should emit a {MetadataUpdate} event
-                                                        └── it should emit a {WithdrawFromLockupStream} event
+   ├── when the segment count is too high
+   │  └── it should revert
+   └── when the segment count is not too high
+       ├── when at least one of the durations at index one or greater is zero
+       │  └── it should revert
+       └── when none of the durations is zero
+          ├── when the segment timestamp calculations overflow uint256
+          │  ├── when the start time is not less than the first segment timestamp
+          │  │  └── it should revert
+          │  └── when the segment timestamps are not ordered
+          │     └── it should revert
+          └── when the segment timestamp calculations do not overflow uint256
+             ├── it should create the stream
+             ├── it should bump the next stream ID
+             ├── it should mint the NFT
+             ├── it should emit a {MetadataUpdate} event
+             ├── it should perform the ERC-20 transfers
+             └── it should emit a {CreateLockupDynamicStream} event
 ```
 
 ## Best Practices
 
-1. Start with the function name as the root, typically ending with `.t.sol`, e.g. `withdraw.t.sol`
+1. Start with the function name as the root, typically ending with `.t.sol`, e.g. `createWithDurations.t.sol`
 2. Use "given" nodes to represent contract states, including complex derived/computed/composed states.
 3. Use "when" nodes to represent function parameters or input conditions.
 4. Use "when" for transaction-specific inputs like msg.sender, msg.value, and msg.data, as these are considered input parameters, not state conditions.

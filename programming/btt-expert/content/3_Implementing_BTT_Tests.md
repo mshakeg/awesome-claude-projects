@@ -47,51 +47,123 @@ Modifiers play a crucial role in BTT implementation. In complex scenarios, it's 
 
 ### Example of Empty Modifiers
 
+If the same modifiers are going to be used to test other contracts with the same or similar external functions you can group them together in a shared abstract contract similar to CreateWithDurations_Integration_Shared_Test shown below that is inherited by those various test contracts for testing the same or similar external function
+
 ```solidity
-abstract contract Withdraw_Integration_Shared_Test is Lockup_Integration_Shared_Test {
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity >=0.8.22 <0.9.0;
+
+import { Lockup_Integration_Shared_Test } from "./Lockup.t.sol";
+
+abstract contract CreateWithDurations_Integration_Shared_Test is Lockup_Integration_Shared_Test {
+    uint256 internal streamId;
+
+    function setUp() public virtual override {
+        streamId = lockup.nextStreamId();
+    }
+
+    modifier whenCliffDurationCalculationDoesNotOverflow() {
+        _;
+    }
+
+    modifier whenDurationsNotZero() {
+        _;
+    }
+
     modifier whenNotDelegateCalled() {
         _;
     }
 
-    modifier givenNotNull() {
+    modifier whenSegmentCountNotTooHigh() {
         _;
     }
 
-    modifier givenStreamNotDepleted() {
+    modifier whenTimestampsCalculationsDoNotOverflow() {
         _;
     }
 
-    modifier whenToNonZeroAddress() {
+    modifier whenTotalDurationCalculationDoesNotOverflow() {
         _;
     }
 
-    // ... many more empty modifiers ...
+    modifier whenTrancheCountNotTooHigh() {
+        _;
+    }
 }
 ```
 
 ### Using Modifiers in Test Functions
 
-Apply modifiers to relevant test functions, stacking multiple modifiers to reflect the .tree structure:
+Apply modifiers to relevant test functions, stacking multiple modifiers to reflect the .tree structure as shown below in `CreateWithDurations_LockupDynamic_Integration_Concrete_Test` test contract for testing the `SablierV2LockupDynamic` contract's `createWithDurations` external function.
 
 ```solidity
-function test_Withdraw()
-    external
-    whenNotDelegateCalled
-    givenNotNull
-    givenStreamNotDepleted
-    whenToNonZeroAddress
-    whenWithdrawAmountNotZero
-    whenNoOverdraw
-    whenWithdrawalAddressIsRecipient
-    whenCallerSender
-    givenEndTimeInTheFuture
-    whenStreamHasNotBeenCanceled
-    givenRecipientAllowedToHook
-    whenRecipientNotReverting
-    whenRecipientReturnsSelector
-    whenRecipientNotReentrant
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity >=0.8.22 <0.9.0;
+
+import { ud2x18 } from "@prb/math/src/UD2x18.sol";
+
+import { ISablierV2LockupDynamic } from "src/interfaces/ISablierV2LockupDynamic.sol";
+import { Errors } from "src/libraries/Errors.sol";
+import { Lockup, LockupDynamic } from "src/types/DataTypes.sol";
+
+import { CreateWithDurations_Integration_Shared_Test } from "../../../shared/lockup/createWithDurations.t.sol";
+import { LockupDynamic_Integration_Concrete_Test } from "../LockupDynamic.t.sol";
+
+contract CreateWithDurations_LockupDynamic_Integration_Concrete_Test is
+    LockupDynamic_Integration_Concrete_Test,
+    CreateWithDurations_Integration_Shared_Test
 {
-    // Test implementation
+    function setUp()
+        public
+        virtual
+        override(LockupDynamic_Integration_Concrete_Test, CreateWithDurations_Integration_Shared_Test)
+    {
+        LockupDynamic_Integration_Concrete_Test.setUp();
+        CreateWithDurations_Integration_Shared_Test.setUp();
+        streamId = lockupDynamic.nextStreamId();
+    }
+
+    /// @dev it should revert.
+    function test_RevertWhen_DelegateCalled() external {
+        // test implementation...
+    }
+
+    /// @dev it should revert.
+    function test_RevertWhen_SegmentCountTooHigh() external whenNotDelegateCalled {
+        // test implementation...
+    }
+
+    function test_RevertWhen_DurationsZero() external whenNotDelegateCalled whenSegmentCountNotTooHigh {
+        // test implementation...
+    }
+
+    function test_RevertWhen_TimestampsCalculationsOverflows_StartTimeNotLessThanFirstSegmentTimestamp()
+        external
+        whenNotDelegateCalled
+        whenSegmentCountNotTooHigh
+        whenDurationsNotZero
+    {
+        // test implementation...
+    }
+
+    function test_RevertWhen_TimestampsCalculationsOverflows_SegmentTimestampsNotOrdered()
+        external
+        whenNotDelegateCalled
+        whenSegmentCountNotTooHigh
+        whenDurationsNotZero
+    {
+        // test implementation...
+    }
+
+    function test_CreateWithDurations()
+        external
+        whenNotDelegateCalled
+        whenSegmentCountNotTooHigh
+        whenDurationsNotZero
+        whenTimestampsCalculationsDoNotOverflow
+    {
+        // test implementation...
+    }
 }
 ```
 
@@ -108,57 +180,5 @@ This approach allows for a clear, one-to-one mapping between the .tree file stru
 7. Regularly review and update tests as the contract evolves
 8. Use empty modifiers to represent all conditions from the .tree file, even if they don't require specific setup
 9. Consider grouping related empty modifiers in a shared abstract contract for reuse across multiple test files
-
-## Example Implementation
-
-```solidity
-abstract contract Withdraw_Integration_Shared_Test is Lockup_Integration_Shared_Test {
-    uint256 internal defaultStreamId;
-
-    function setUp() public virtual override {
-        defaultStreamId = createDefaultStream();
-        resetPrank({ msgSender: users.recipient });
-    }
-
-    // Active modifier
-    modifier givenEndTimeInTheFuture() {
-        vm.warp({ newTimestamp: defaults.WARP_26_PERCENT() });
-        _;
-    }
-
-    // Empty modifiers
-    modifier givenNotNull() {
-        _;
-    }
-
-    modifier whenNoOverdraw() {
-        _;
-    }
-
-    // ... other modifiers ...
-}
-
-contract Withdraw_Integration_Concrete_Test is Withdraw_Integration_Shared_Test {
-    function test_Withdraw()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        givenStreamNotDepleted
-        whenToNonZeroAddress
-        whenWithdrawAmountNotZero
-        whenNoOverdraw
-        whenWithdrawalAddressIsRecipient
-        whenCallerSender
-        givenEndTimeInTheFuture
-        whenStreamHasNotBeenCanceled
-        givenRecipientAllowedToHook
-        whenRecipientNotReverting
-        whenRecipientReturnsSelector
-        whenRecipientNotReentrant
-    {
-        // Test implementation
-    }
-}
-```
 
 Remember to balance thoroughness with maintainability in your test implementations. The use of empty modifiers allows for a clear representation of all conditions from the .tree file in your test code, improving readability and alignment with the BTT structure.
