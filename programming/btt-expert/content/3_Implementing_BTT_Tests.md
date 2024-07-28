@@ -5,10 +5,11 @@
 1. Create a base test abstract contract inheriting from your testing framework (e.g., forge-std/Test.sol)
 2. Implement a setUp() function to deploy the contract under test
 3. Create separate test contracts for each function, inheriting from the base test abstract contract
+4. Use multiple levels of inheritance to handle complex .tree structures
 
 ## Naming Conventions
 
-Based on the patterns observed in the Sablier v2-core codebase, the following naming conventions are used for test functions:
+Use the following naming conventions for test functions:
 
 - General format: test_[Condition(s)]_[ExpectedOutcome]
 
@@ -17,8 +18,7 @@ Based on the patterns observed in the Sablier v2-core codebase, the following na
     - test_RevertWhen_[ParameterCondition]: Used when a parameter condition causes a revert
 
 - For successful cases:
-    - test_[FunctionName]: Used for straightforward, happy-path scenarios
-    - test_[FunctionName]_[Condition(s)]: Used when testing specific conditions in successful scenarios
+    - test_[FunctionName]_[Condition(s)]
 
 - For complex scenarios:
     - Combine multiple conditions using underscores, e.g., test_Withdraw_CallerRecipient2
@@ -171,14 +171,15 @@ This approach allows for a clear, one-to-one mapping between the .tree file stru
 
 ## Best Practices
 
-1. Ensure each test function corresponds to a branch in the .tree file
-2. Use assertions to verify expected outcomes
-3. Test both happy paths and error cases
-4. Leverage VM operations (like vm.expectRevert) for testing error conditions
+1. Ensure each test function corresponds to a complete path in the .tree file
+2. Use assertions to verify expected outcomes for each branch
+3. Test both happy paths and error cases thoroughly
+4. Leverage VM operations (like vm.expectRevert, vm.warp) for testing complex conditions
 5. Use helper functions to set up complex test scenarios
 6. Maintain consistency between .tree files and test implementations
 7. Regularly review and update tests as the contract evolves
 8. Use empty modifiers to represent all conditions from the .tree file, even if they don't require specific setup
 9. Consider grouping related empty modifiers in a shared abstract contract for reuse across multiple test files
+10. Implement thorough setUp() functions to ensure correct initial state for each test
 
-Remember to balance thoroughness with maintainability in your test implementations. The use of empty modifiers allows for a clear representation of all conditions from the .tree file in your test code, improving readability and alignment with the BTT structure.
+Remember to balance thoroughness with maintainability in your test implementations. The use of modifiers including empty modifiers allows for a clear representation of all conditions from the .tree file in your test code, improving readability and alignment with the BTT structure.
