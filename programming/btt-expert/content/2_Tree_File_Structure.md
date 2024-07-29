@@ -169,3 +169,86 @@ This example demonstrates the level of detail and granularity expected in a comp
 Each branch in the .tree file typically corresponds to a modifier in the test implementation. This is true even for branches that don't require specific setup logic - these are often represented by empty modifiers. This approach ensures a clear, one-to-one mapping between the .tree structure and the test code, enhancing readability and maintainability.
 
 Remember to keep your .tree files up-to-date as your contract evolves, and ensure that all branches are covered in your test implementation. Regularly review and validate your .tree files to maintain their accuracy and comprehensiveness.
+
+## Tree Structure
+
+The .tree file should closely mirror the structure and sequence of checks and conditions in the actual code. It can include both binary (if-else) structures and multi-branch decision points:
+
+### Binary Structure
+
+For binary decisions (if-else structures in code):
+
+1. Each decision point should have exactly two branches.
+2. The left branch typically represents the condition being true or the check failing.
+3. The right branch represents the condition being false or the check passing.
+
+Example of a binary structure:
+```
+functionName.t.sol
+├── when delegate called
+│   └── it should revert
+└── when not delegate called
+    ├── given the contract is paused
+    │   └── it should revert
+    └── given the contract is not paused
+        ├── when the input is invalid
+        │   └── it should revert
+        └── when the input is valid
+            └── it should proceed
+```
+
+### Multi-Branch Structure
+
+For decisions with multiple possible outcomes:
+
+1. List all possible outcomes as separate branches.
+2. Order branches logically, typically with failure cases or special conditions first, followed by the main execution path.
+
+Example of a multi-branch structure:
+```
+functionName.t.sol
+├── when the caller is unknown
+│   └── it should revert
+├── when the caller is the sender
+│   └── it should revert
+├── when the caller is a former recipient
+│   └── it should revert
+├── when the caller is an approved third party
+│   ├── it should make the withdrawal
+│   └── it should update the withdrawn amount
+└── when the caller is the recipient
+    ├── it should make the withdrawal
+    ├── it should update the withdrawn amount
+    ├── it should emit a {MetadataUpdate} event
+    └── it should emit a {WithdrawFromLockupStream} event
+```
+
+### Combining Binary and Multi-Branch Structures
+
+In practice, .tree files often combine both binary and multi-branch structures to accurately represent the code's logic:
+
+```
+complexFunction.t.sol
+├── when delegate called
+│   └── it should revert
+└── when not delegate called
+    ├── given the contract is paused
+    │   └── it should revert
+    └── given the contract is not paused
+        ├── when the input amount is zero
+        │   └── it should revert
+        └── when the input amount is not zero
+            ├── when the caller is unknown
+            │   └── it should revert
+            ├── when the caller is the owner
+            │   ├── it should process the transaction
+            │   └── it should emit an OwnerAction event
+            ├── when the caller is an approved operator
+            │   ├── it should process the transaction
+            │   └── it should emit an OperatorAction event
+            └── when the caller is a regular user
+                ├── it should process the transaction
+                └── it should emit a UserAction event
+```
+
+This structure allows for an accurate representation of complex logic, combining both binary choices and multiple-option decision points as they appear in the actual code.
