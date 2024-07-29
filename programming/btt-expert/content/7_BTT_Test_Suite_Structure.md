@@ -2,7 +2,7 @@
 
 This guide outlines how to organize a comprehensive test suite using the Branching Tree Technique (BTT) in a Forge/Foundry project, based on the approach used in the Sablier v2-core codebase.
 
-Note: If a contract name is prefixed with the project name (e.g., SablierV2Lockup), you can omit the prefix in any place where the contract name is being referenced. For example, use "lockup" for folder names or "Lockup" in abstract contract names that incorporate the contract name.
+Note: If a contract name is prefixed with the project name (e.g., `SablierV2Lockup` or `SablierV2LockupDynamic` in `@sablier/v2-core`), you must always omit the prefix in any folder, file or contract name within the test suite. For example, if the given contract name is `SablierV2Lockup` then in the test suite use `lockup` for folder names, `Lockup.t.sol` for file names or `Lockup_...` in abstract contract names, or if the given contract name is `SablierV2LockupDynamic` then in the test suite use `lockup-dynamic` for folder names, `LockupDynamic.t.sol` or `LockupDynamic_...` in abstract contract names. This is simply to avoid being repetitive since it is a given as we are working within the test suite for said project.
 
 ## Terminology
 
@@ -13,7 +13,26 @@ Note: If a contract name is prefixed with the project name (e.g., SablierV2Locku
 
 ## Example Project Structure
 
-The following structure represents an example project with an abstract contract called `BaseContract` and three inheriting contracts (`ContractA`, `ContractB`, `ContractC`). `BaseContract` implements `function baseFunction1() external` and `function baseFunction2() external` that would be shared by all three inheriting contracts. `ContractA` implements `function functionA() external`, `ContractB` implements `function functionB() external`, and `ContractC` implements `function functionC() external`.
+The following folder structure represents an example project with an abstract contract called `BaseContract` and three inheriting contracts (`ContractA`, `ContractB`, `ContractC`). `BaseContract` implements `function baseFunction1() external` and `function baseFunction2() external` that would be shared by all three inheriting contracts. In addition, `ContractA`, `ContractB` and `ContractC` each implement a function that is logically related and share a very similar structure however are typically distinct in their function signature, in this example let's say `ContractA` implements `function sum(int8, int8)`, `ContractB` implements `function sum(int16, int16)` and `ContractC` implements `function sum(int24, int24)`. `ContractA` also implements its own unique function `uniqueFunction()` that doesn't exist in the other contracts.
+
+For another example of functions that are logically similar but have distinct function signatures you could look to the `createWithDurations` functions of the `SablierV2LockupDynamic`, `SablierV2LockupLinear` and `SablierV2LockupTranched` contracts that function the following signatures:
+
+```solidity
+// From ISablierV2LockupDynamic:
+function createWithDurations(LockupDynamic.CreateWithDurations calldata params)
+    external
+    returns (uint256 streamId);
+
+// From ISablierV2LockupLinear:
+function createWithDurations(LockupLinear.CreateWithDurations calldata params)
+    external
+    returns (uint256 streamId);
+
+// From ISablierV2LockupTranched:
+function createWithDurations(LockupTranched.CreateWithDurations calldata params)
+    external
+    returns (uint256 streamId);
+```
 
 The below structure focuses in more detail on the integration test category; however, the same principles can be applied to the other test categories (i.e., unit, fork, and invariant tests).
 
@@ -34,9 +53,7 @@ project/
     │   │   │   ├── BaseContract.t.sol
     │   │   │   ├── baseFunction1.t.sol
     │   │   │   ├── baseFunction2.t.sol
-    │   │   │   ├── functionA.t.sol
-    │   │   │   ├── functionB.t.sol
-    │   │   │   └── functionC.t.sol
+    │   │   │   └── sum.t.sol
     │   │   ├── contract-a/
     │   │   │   └── ContractA.t.sol
     │   │   ├── contract-b/
@@ -52,23 +69,23 @@ project/
     │       │       ├── baseFunction2.tree
     │       │       └── baseFunction2.t.sol
     │       ├── contract-a/
-    │       │   ├── constructor.t.sol
     │       │   ├── ContractA.t.sol
-    │       │   └── function-a/
-    │       │       ├── functionA.tree
-    │       │       └── functionA.t.sol
+    │       │   ├── sum/
+    │       │   │   ├── sum.tree
+    │       │   │   └── sum.t.sol
+    │       │   └── unique-function/
+    │       │       ├── uniqueFunction.tree
+    │       │       └── uniqueFunction.t.sol
     │       ├── contract-b/
-    │       │   ├── constructor.t.sol
     │       │   ├── ContractB.t.sol
-    │       │   └── function-b/
-    │       │       ├── functionB.tree
-    │       │       └── functionB.t.sol
+    │       │   └── sum/
+    │       │       ├── sum.tree
+    │       │       └── sum.t.sol
     │       └── contract-c/
-    │           ├── constructor.t.sol
     │           ├── ContractC.t.sol
-    │           └── function-c/
-    │               ├── functionC.tree
-    │               └── functionC.t.sol
+    │           └── sum/
+    │               ├── sum.tree
+    │               └── sum.t.sol
     ├── unit/
     ├── fork/
     └── invariant/
@@ -83,7 +100,6 @@ project/
    - Nested directly in the ./test folder
    - Common base to all integration, unit, fork, and invariant tests
    - Generally inherited by the first abstract contract in each test folder (e.g., Integration_Test inherits Base_Test)
-
 
 2. **Integration Test Base**: `integration/Integration.t.sol`
    - Inherits from `Base.t.sol`
@@ -155,7 +171,7 @@ abstract contract Integration_Test is Base_Test {
 #### Base Shared Test (`test/integration/shared/base-contract/BaseContract.t.sol`)
 
 ```solidity
-abstract contract BaseContract_Integration_Shared_Test is Integration_Test {
+abstract contract BaseContract_Integration_Shared_Test is Base_Test {
     IBaseContract internal baseContract;
 
     function setUp() public virtual override {
@@ -164,7 +180,10 @@ abstract contract BaseContract_Integration_Shared_Test is Integration_Test {
     }
 
     // Common test helper functions specified as virtual
-    // These functions are meant to be implemented in the concrete {Contract}_Integration_Shared_Test abstract contracts such as ContractA_Integration_Shared_Test, ContractB_Integration_Shared_Test, ContractC_Integration_Shared_Test)
+    // These functions are meant to be implemented in the concrete {Contract}_Integration_Shared_Test abstract contracts such as:
+    // ContractA_Integration_Shared_Test
+    // ContractB_Integration_Shared_Test
+    // ContractC_Integration_Shared_Test
     // This allows each contract to define its own implementation of these helpers based on its specific needs.
     function createDefaultStream() internal virtual returns (uint256 streamId);
     function createDefaultStreamNotCancelable() internal virtual returns (uint256 streamId);
@@ -193,10 +212,10 @@ abstract contract BaseFunction1_Integration_Shared_Test is BaseContract_Integrat
 // NB: The `BaseFunction2_Integration_Shared_Test` abstract contract would be similarly implemented
 ```
 
-#### Function-Specific Shared Test for FunctionA (`test/integration/shared/base-contract/functionA.t.sol`)
+#### Function-Specific Shared Test for sum (`test/integration/shared/base-contract/sum.t.sol`)
 
 ```solidity
-abstract contract FunctionA_Integration_Shared_Test is BaseContract_Integration_Shared_Test {
+abstract contract Sum_Integration_Shared_Test is BaseContract_Integration_Shared_Test {
     uint256 internal streamId;
 
     function setUp() public virtual override {
@@ -328,22 +347,22 @@ contract BaseFunction2_ContractA_Integration_Concrete_Test is
 // test/integration/concrete/contract-c/ContractC.t.sol
 ```
 
-#### Function-Specific Concrete Test for ContractA (`test/integration/concrete/contract-a/function-a/functionA.t.sol`)
+#### Sum Function Concrete Test for ContractA (`test/integration/concrete/contract-a/sum/sum.t.sol`)
 
 ```solidity
-contract FunctionA_ContractA_Integration_Concrete_Test is
+contract Sum_ContractA_Integration_Concrete_Test is
     ContractA_Integration_Concrete_Test,
-    FunctionA_Integration_Shared_Test
+    Sum_Integration_Shared_Test
 {
-    function setUp() public override(ContractA_Integration_Concrete_Test, FunctionA_Integration_Shared_Test) {
+    function setUp() public override(ContractA_Integration_Concrete_Test, Sum_Integration_Shared_Test) {
         ContractA_Integration_Concrete_Test.setUp();
-        FunctionA_Integration_Shared_Test.setUp();
+        Sum_Integration_Shared_Test.setUp();
 
         // any additional set up that needs to be done can be done next:
         streamId = contractA.nextStreamId();
     }
 
-    function test_FunctionA_WhenConditionX_AndConditionY() public
+    function test_Sum_WhenConditionX_AndConditionY() public
         whenConditionX
         whenConditionY
     {
@@ -351,6 +370,32 @@ contract FunctionA_ContractA_Integration_Concrete_Test is
     }
 
     // More test scenario functions...
+}
+```
+
+#### Unique Function Concrete Test (`test/integration/concrete/contract-a/unique-function/uniqueFunction.t.sol`)
+
+```solidity
+contract UniqueFunction_ContractA_Integration_Concrete_Test is
+    ContractA_Integration_Concrete_Test
+{
+    function setUp() public override(ContractA_Integration_Concrete_Test) {
+        ContractA_Integration_Concrete_Test.setUp();
+    }
+
+    // "given" and "when" modifiers for uniqueFunction defined in directly in the test contract
+    modifier whenUniqueConditionA() { _; }
+    modifier whenUniqueConditionB() { _; }
+
+    function test_UniqueFunction_WhenUniqueConditionA() public whenUniqueConditionA {
+        // Test implementation
+    }
+
+    function test_UniqueFunction_WhenUniqueConditionB() public whenUniqueConditionB {
+        // Test implementation
+    }
+
+    // More test functions...
 }
 ```
 
@@ -375,17 +420,14 @@ function test_BaseFunction1_RevertWhen_AmountIsZero() public whenAmountIsZero { 
 function test_BaseFunction1_UpdateBalance_WhenAmountIsPositive() public whenAmountIsPositive { ... }
 ```
 
-#### Example Tree File for ContractA functionA (`test/integration/concrete/contract-a/function-a/functionA.tree`)
+### Example Tree File for ContractA uniqueFunction (`test/integration/concrete/contract-a/unique-function/uniqueFunction.tree`)
 
 ```
-functionA.t.sol
-├── when condition X
-│   ├── when condition Y
-│   │   └── it should do P
-│   └── when condition Z
-│       └── it should do Q
-└── when condition W
-    └── it should do R
+uniqueFunction.t.sol
+├── when unique condition A
+│   └── it should do X
+└── when unique condition B
+    └── it should do Y
 ```
 
 Note: Typically, each condition in the .tree file maps to a single modifier in the test contracts.
