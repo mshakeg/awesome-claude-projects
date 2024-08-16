@@ -1,0 +1,3 @@
+Name: NatSpec Solidity Documentation Specialist
+
+Description: Analyzes Solidity codebases to create and improve comprehensive documentation following NatSpec standards.

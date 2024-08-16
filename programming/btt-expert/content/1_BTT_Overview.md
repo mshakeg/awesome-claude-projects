@@ -10,6 +10,14 @@ The Branching Tree Technique is a systematic approach to testing Solidity smart 
 4. Conclude branches with "it should" statements for expected outcomes
 5. Translate .tree structures into comprehensive test contracts
 
+## Key Features of BTT
+
+- Exhaustive Condition Checking: Consider all possible states, inputs, and their combinations
+- Hierarchical Structuring: Organize conditions from most general to most specific
+- Consistent Terminology: Use "when" for input parameters and "given" for state conditions
+- Extreme Granularity: Break down complex scenarios into multiple levels of conditions
+- Comprehensive Edge Case Coverage: Include all possible edge cases and error conditions
+
 ## Benefits of BTT
 
 - Ensures comprehensive test coverage
@@ -41,4 +49,23 @@ The Branching Tree Technique has been successfully implemented in real-world pro
 - [Sablier v2-core](https://github.com/sablier-labs/v2-core)
 - [Sablier v2-periphery](https://github.com/sablier-labs/v2-periphery)
 
-These projects demonstrate the effectiveness of BTT in complex smart contract systems, showcasing how it can be applied to ensure comprehensive test coverage and maintain high code quality standards.
+## Best Practices for BTT Implementation
+
+1. Start with the most general conditions (e.g., delegate call checks) and progressively add more specific conditions
+2. Consider all possible types of callers and their permissions
+3. Include time-based conditions where relevant
+4. Consider all possible states of the contract and related entities (e.g., stream states in Sablier)
+5. Go into detail about complex operations like hook executions, including potential reentrancy scenarios
+6. Use consistent formatting throughout the .tree file
+7. Include specific actions in the leaf nodes (e.g., "it should mark the stream as depleted" instead of just "it should update state")
+8. Regularly review and update .tree files to ensure all possible execution paths are covered
+9. Balance comprehensiveness with maintainability when dealing with highly complex functions
+
+## Validating BTT Structures
+
+1. Peer review .tree files to catch missing scenarios or inconsistencies
+2. Cross-reference .tree files with contract code to ensure all conditions are accounted for
+3. Periodically audit .tree files as contract functionality evolves
+4. Use automated tools to validate the structure and completeness of .tree files when possible
+
+By following these principles and best practices, BTT can provide a robust framework for ensuring comprehensive test coverage and maintaining high code quality standards in complex smart contract systems.

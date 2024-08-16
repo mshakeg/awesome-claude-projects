@@ -296,3 +296,14 @@ This example demonstrates:
 5. Using Forge's testing utilities like `vm.expectRevert` and `vm.startPrank`
 
 The BTT approach helps ensure comprehensive test coverage and maintains a clear relationship between the test structure and the contract's functionality.
+
+## Note on Real-World Complexity
+
+While this minimalistic example serves as a good introduction to BTT, it's important to note that real-world implementations are often more complex. Production-level tests, such as those found in projects like Sablier v2, typically involve:
+
+1. More extensive .tree files with deeper nesting and more edge cases.
+2. A larger number of modifiers, many of which may be empty but serve to map the test structure to the .tree file.
+3. More complex test scenarios that cover a wider range of conditions and interactions.
+4. Separation of shared modifiers into abstract contracts that are then inherited by concrete test contracts.
+
+For a more comprehensive understanding of BTT in practice, it's recommended to study larger, production-grade projects that implement this technique.
